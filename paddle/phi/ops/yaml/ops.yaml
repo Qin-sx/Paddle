@@ -150,6 +150,18 @@
   backward : addmm_grad
   interfaces : paddle::dialect::InferSymbolicShapeInterface
 
+- op : baddbmm
+  args : (Tensor input, Tensor x, Tensor y, float beta=1.0, float alpha=1.0)
+  output : Tensor(out)
+  infer_meta :
+    func : BaddbmmInferMeta
+  kernel :
+    func : baddbmm
+    data_type : x
+  inplace: (input -> out)
+  backward : baddbmm_grad
+  # interfaces : paddle::dialect::InferSymbolicShapeInterface
+
 - op : affine_channel
   args: (Tensor x, Tensor scale, Tensor bias, str data_layout = "AnyLayout")
   output: Tensor (out)
