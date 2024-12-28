@@ -82,14 +82,62 @@ void BaddbmmKernel(const Context& dev_ctx, const DenseTensor& input, const Dense
     auto& place = *dev_ctx.eigen_device();
     funcs::EigenBroadcast<std::decay_t<decltype(place)>, T, 3>::Eval(
         place, eigen_out, eigen_input, bcast_dims);
+    std::cout << "Type of T: " << typeid(T).name() << std::endl;
+    std::cout << "Type of Context: " << typeid(Context).name() << std::endl;
+    // T t_alpha = static_cast<T>(alpha);
+    // T t_beta = static_cast<T>(beta);
+    // if constexpr (std::is_same_v<Context, phi::GPUContext>) {
+    //     for (int i = 0; i < x_dims[0]; ++i) {
+    //         blas.GEMM(false, false, x_dims[1], y_dims[2], x_dims[2], t_alpha,
+    //                   x.data<T>() + i * x_dims[1] * x_dims[2], x_dims[2],
+    //                   y.data<T>() + i * y_dims[1] * y_dims[2], y_dims[2],
+    //                   t_beta, out->data<T>() + i * x_dims[1] * y_dims[2], y_dims[2]);
+    // }
+    // } else {
+    //     for (int i = 0; i < x_dims[0]; ++i) {
+    //         blas.GEMM(false, false, x_dims[1], y_dims[2], x_dims[2], t_alpha,
+    //                   x.data<T>() + i * x_dims[1] * x_dims[2], x_dims[2],
+    //                   y.data<T>() + i * y_dims[1] * y_dims[2], y_dims[2],
+    //                   t_beta, out->data<T>() + i * x_dims[1] * y_dims[2], y_dims[2]);
+    //     }
+    // }
 
-    T t_alpha = static_cast<T>(alpha);
-    T t_beta = static_cast<T>(beta);
-    for (int i = 0; i < x_dims[0]; ++i) {
-        blas.GEMM(false, false, x_dims[1], y_dims[2], x_dims[2], t_alpha,
-                  x.data<T>() + i * x_dims[1] * x_dims[2], x_dims[2],
-                  y.data<T>() + i * y_dims[1] * y_dims[2], y_dims[2],
-                  t_beta, out->data<T>() + i * x_dims[1] * y_dims[2], y_dims[2]);
+    // // inconsistent with matmul
+    // for (int i = 0; i < x_dims[0]; ++i) {
+    //     blas.GEMM(false, false, x_dims[1], y_dims[2], x_dims[2], t_alpha,
+    //               x.data<T>() + i * x_dims[1] * x_dims[2], x_dims[2],
+    //               y.data<T>() + i * y_dims[1] * y_dims[2], y_dims[2],
+    //               t_beta, out->data<T>() + i * x_dims[1] * y_dims[2], y_dims[2]);
+    // }
+
+    // // consistent with matmul
+    // for (int i = 0; i < x_dims[0]; ++i) {
+    //     blas.GEMM(CblasNoTrans, CblasNoTrans, x_dims[1], y_dims[2], x_dims[2], t_alpha,
+    //               x.data<T>() + i * x_dims[1] * x_dims[2], 
+    //               y.data<T>() + i * y_dims[1] * y_dims[2], 
+    //               t_beta, out->data<T>() + i * x_dims[1] * y_dims[2]);
+    // }
+
+    if constexpr (std::is_same_v<T, phi::dtype::float16>) {
+        float t_alpha = alpha;
+        float t_beta = beta;
+        for (int i = 0; i < x_dims[0]; ++i) {
+            blas.GEMM(CblasNoTrans, CblasNoTrans, x_dims[1], y_dims[2], x_dims[2], t_alpha,
+                      x.data<T>() + i * x_dims[1] * x_dims[2], 
+                      y.data<T>() + i * y_dims[1] * y_dims[2], 
+                      t_beta, out->data<T>() + i * x_dims[1] * y_dims[2]);
+        }
+    }
+    else
+    {
+        T t_alpha = static_cast<T>(alpha);
+        T t_beta = static_cast<T>(beta);
+        for (int i = 0; i < x_dims[0]; ++i) {
+            blas.GEMM(CblasNoTrans, CblasNoTrans, x_dims[1], y_dims[2], x_dims[2], t_alpha,
+                      x.data<T>() + i * x_dims[1] * x_dims[2], 
+                      y.data<T>() + i * y_dims[1] * y_dims[2], 
+                      t_beta, out->data<T>() + i * x_dims[1] * y_dims[2]);
+        }
     }
 }
 

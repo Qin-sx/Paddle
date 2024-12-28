@@ -96,6 +96,18 @@ class Blas {
             T beta,
             T* C) const;
 
+  template <typename T, typename U = T>
+  void GEMM(CBLAS_TRANSPOSE transA,
+            CBLAS_TRANSPOSE transB,
+            int M,
+            int N,
+            int K,
+            U alpha,
+            const T* A,
+            const T* B,
+            U beta,
+            T* C) const;
+
   template <typename T>
   void GEMM(bool transA,
             bool transB,

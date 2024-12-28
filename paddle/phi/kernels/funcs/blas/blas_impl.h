@@ -1081,6 +1081,37 @@ void Blas<phi::CPUContext>::GEMM(CBLAS_TRANSPOSE transA,
 }
 
 template <>
+template <typename T, typename U>
+void Blas<phi::CPUContext>::GEMM(CBLAS_TRANSPOSE transA,
+                                 CBLAS_TRANSPOSE transB,
+                                 int M,
+                                 int N,
+                                 int K,
+                                 U alpha,
+                                 const T *A,
+                                 const T *B,
+                                 U beta,
+                                 T *C) const {
+  int lda = (transA == CblasNoTrans) ? K : M;
+  int ldb = (transB == CblasNoTrans) ? N : K;
+  int ldc = N;
+  CBlas<T>::GEMM(CblasRowMajor,
+                 transA,
+                 transB,
+                 M,
+                 N,
+                 K,
+                 alpha,
+                 A,
+                 lda,
+                 B,
+                 ldb,
+                 beta,
+                 C,
+                 ldc);
+}
+
+template <>
 template <typename T>
 void Blas<phi::CPUContext>::GEMM(bool transA,
                                  bool transB,
