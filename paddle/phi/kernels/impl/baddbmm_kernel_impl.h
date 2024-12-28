@@ -85,11 +85,19 @@ void BaddbmmKernel(const Context& dev_ctx, const DenseTensor& input, const Dense
 
     T t_alpha = static_cast<T>(alpha);
     T t_beta = static_cast<T>(beta);
+    // for (int i = 0; i < x_dims[0]; ++i) {
+    //     blas.GEMM(false, false, x_dims[1], y_dims[2], x_dims[2], t_alpha,
+    //               x.data<T>() + i * x_dims[1] * x_dims[2], x_dims[2],
+    //               y.data<T>() + i * y_dims[1] * y_dims[2], y_dims[2],
+    //               t_beta, out->data<T>() + i * x_dims[1] * y_dims[2], y_dims[2]);
+    // }
+
+    // consistent with matmul when alpha=1 and beta=0
     for (int i = 0; i < x_dims[0]; ++i) {
-        blas.GEMM(false, false, x_dims[1], y_dims[2], x_dims[2], t_alpha,
-                  x.data<T>() + i * x_dims[1] * x_dims[2], x_dims[2],
-                  y.data<T>() + i * y_dims[1] * y_dims[2], y_dims[2],
-                  t_beta, out->data<T>() + i * x_dims[1] * y_dims[2], y_dims[2]);
+        blas.GEMM(CblasNoTrans, CblasNoTrans, x_dims[1], y_dims[2], x_dims[2], t_alpha,
+        x.data<T>() + i * x_dims[1] * x_dims[2],
+        y.data<T>() + i * y_dims[1] * y_dims[2],
+        t_beta, out->data<T>() + i * x_dims[1] * y_dims[2]);
     }
 }
 

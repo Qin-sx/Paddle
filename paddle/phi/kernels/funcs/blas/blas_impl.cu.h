@@ -105,6 +105,7 @@ struct CUBlas<float> {
 // appears in a lambda-expression, I can not use template parameter pack
 // here.
 #if CUDA_VERSION >= 8000
+    std::cout<<"static void GEMM_EX float CUDA_VERSION >= 8000"<<std::endl;
     VLOG(5) << "use_tensor_op_math: "
             << (dev_ctx->tensor_core_available() ? "True" : "False");
     dev_ctx->TensorCoreCublasCallIfAvailable([&](cublasHandle_t handle) {
@@ -411,17 +412,21 @@ struct CUBlas<phi::dtype::float16> {
                       cudaDataType_t Ctype,
                       int ldc,
                       cudaDataType_t computeType) {
+    std::cout<<"GEMM_EX float16"<<std::endl;
 #if CUDA_VERSION >= 8000
+    std::cout<<"CUDA_VERSION >= 8000"<<std::endl;
     cublasGemmAlgo_t algo = CUBLAS_GEMM_DFALT;
 #if CUDA_VERSION >= 9000
+    std::cout<<"CUDA_VERSION >= 9000"<<std::endl;
     bool use_tensor_op_math = dev_ctx->tensor_core_available();
+    std::cout<<"use_tensor_op_math: "<< use_tensor_op_math <<std::endl;
     if (use_tensor_op_math) {
       algo = CUBLAS_GEMM_DFALT_TENSOR_OP;
     }
     VLOG(5) << "use_tensor_op_math: "
             << (use_tensor_op_math ? "True" : "False");
 #endif  // CUDA_VERSION >= 9000
-
+    std::cout<<"TensorCoreCublasCallIfAvailable"<<std::endl;
     dev_ctx->TensorCoreCublasCallIfAvailable([&](cublasHandle_t handle) {
       PADDLE_ENFORCE_GPU_SUCCESS(phi::dynload::cublasGemmEx(handle,
                                                             transa,
@@ -1059,9 +1064,10 @@ void Blas<phi::GPUContext>::GEMM(CBLAS_TRANSPOSE transA,
       (transA == CblasNoTrans) ? CUBLAS_OP_N : CUBLAS_OP_T;
   cublasOperation_t cuTransB =
       (transB == CblasNoTrans) ? CUBLAS_OP_N : CUBLAS_OP_T;
-
+  std::cout<<"Blas<phi::GPUContext>::GEMM phi::dtype::T alpha,"<<std::endl;
 #if CUDA_VERSION >= 8000
   if (FLAGS_enable_cublas_tensor_op_math && std::is_same<T, float>::value) {
+    std::cout<<"Blas<phi::GPUContext>::GEMM phi::dtype::T alpha,11111"<<std::endl;
     auto &cuda_ctx = const_cast<phi::GPUContext &>(context_);
     CUBlas<T>::GEMM_EX(&cuda_ctx,
                        cuTransB,
@@ -1082,6 +1088,7 @@ void Blas<phi::GPUContext>::GEMM(CBLAS_TRANSPOSE transA,
                        N);
   } else {
 #endif  // CUDA_VERSION >= 8000
+    std::cout<<"Blas<phi::GPUContext>::GEMM phi::dtype::T alpha,22222"<<std::endl;
     context_.CublasCall([&](cublasHandle_t handle) {
       CUBlas<T>::GEMM(handle,
                       cuTransB,
@@ -1136,7 +1143,9 @@ inline void Blas<phi::GPUContext>::GEMM(CBLAS_TRANSPOSE transA,
 
   float h_alpha = static_cast<float>(alpha);
   float h_beta = static_cast<float>(beta);
-
+  std::cout<<"Blas<phi::GPUContext>::GEMM phi::dtype::float16 alpha,"<<std::endl;
+  std::cout<<"h_alpha: "<<h_alpha<<std::endl;
+  std::cout<<"h_beta: "<<h_beta<<std::endl;
 #if CUDA_VERSION >= 8000
   // cublasHgemm does true FP16 computation which is slow for non-Volta
   // GPUs. So use cublasGemmEx instead which does pesudo FP16 computation:
