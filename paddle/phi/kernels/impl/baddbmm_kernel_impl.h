@@ -118,25 +118,77 @@ void BaddbmmKernel(const Context& dev_ctx, const DenseTensor& input, const Dense
     //               t_beta, out->data<T>() + i * x_dims[1] * y_dims[2]);
     // }
 
+    // if constexpr (std::is_same_v<T, phi::dtype::float16>) {
+    //     float t_alpha = alpha;
+    //     float t_beta = beta;
+    //     for (int i = 0; i < x_dims[0]; ++i) {
+    //         blas.GEMM(CblasNoTrans, CblasNoTrans, x_dims[1], y_dims[2], x_dims[2], t_alpha,
+    //                   x.data<T>() + i * x_dims[1] * x_dims[2], 
+    //                   y.data<T>() + i * y_dims[1] * y_dims[2], 
+    //                   t_beta, out->data<T>() + i * x_dims[1] * y_dims[2]);
+    //     }
+    // }
+    // else
+    // {
+    //     T t_alpha = static_cast<T>(alpha);
+    //     T t_beta = static_cast<T>(beta);
+    //     for (int i = 0; i < x_dims[0]; ++i) {
+    //         blas.GEMM(CblasNoTrans, CblasNoTrans, x_dims[1], y_dims[2], x_dims[2], t_alpha,
+    //                   x.data<T>() + i * x_dims[1] * x_dims[2], 
+    //                   y.data<T>() + i * y_dims[1] * y_dims[2], 
+    //                   t_beta, out->data<T>() + i * x_dims[1] * y_dims[2]);
+    //     }
+    // }
+
     if constexpr (std::is_same_v<T, phi::dtype::float16>) {
         float t_alpha = alpha;
         float t_beta = beta;
-        for (int i = 0; i < x_dims[0]; ++i) {
+        if(x_dims[0] == 1) {
             blas.GEMM(CblasNoTrans, CblasNoTrans, x_dims[1], y_dims[2], x_dims[2], t_alpha,
-                      x.data<T>() + i * x_dims[1] * x_dims[2], 
-                      y.data<T>() + i * y_dims[1] * y_dims[2], 
-                      t_beta, out->data<T>() + i * x_dims[1] * y_dims[2]);
+                      x.data<T>(), 
+                      y.data<T>(), 
+                      t_beta, out->data<T>());
+        }
+        else
+        {
+            blas.BatchedGEMM(CblasNoTrans, CblasNoTrans, x_dims[1], y_dims[2], x_dims[2], t_alpha,
+                      x.data<T>(), 
+                      y.data<T>(), 
+                      t_beta, out->data<T>(), x_dims[0], x_dims[1] * x_dims[2], x_dims[2] * y_dims[2]);
         }
     }
     else
     {
         T t_alpha = static_cast<T>(alpha);
         T t_beta = static_cast<T>(beta);
-        for (int i = 0; i < x_dims[0]; ++i) {
+        if(x_dims[0] == 1)
+        {
             blas.GEMM(CblasNoTrans, CblasNoTrans, x_dims[1], y_dims[2], x_dims[2], t_alpha,
-                      x.data<T>() + i * x_dims[1] * x_dims[2], 
-                      y.data<T>() + i * y_dims[1] * y_dims[2], 
-                      t_beta, out->data<T>() + i * x_dims[1] * y_dims[2]);
+                      x.data<T>(), 
+                      y.data<T>(), 
+                      t_beta, out->data<T>());
+        }
+        else
+        {
+            blas.BatchedGEMM(CblasNoTrans, CblasNoTrans, x_dims[1], y_dims[2], x_dims[2], t_alpha,
+                      x.data<T>(), 
+                      y.data<T>(), 
+                      t_beta, out->data<T>(), x_dims[0], x_dims[1] * x_dims[2], x_dims[2] * y_dims[2]);
+            // x_dims[2] == y_dims[1]
+
+            // blas.BatchedGEMM(trans_x ? CblasTrans : CblasNoTrans,
+            //          trans_y ? CblasTrans : CblasNoTrans,
+            //          M,
+            //          N,
+            //          K,
+            //          static_cast<T>(1),
+            //          x_data,
+            //          y_data,
+            //          static_cast<T>(flag),
+            //          dev_ctx.template Alloc<T>(Out),
+            //          out_batch_size,
+            //          M * K,
+            //          K * N);
         }
     }
 }

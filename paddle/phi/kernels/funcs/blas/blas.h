@@ -304,6 +304,21 @@ class Blas {
                    int64_t strideA,
                    int64_t strideB) const;
 
+  template <typename T, typename U = T>
+  void BatchedGEMM(CBLAS_TRANSPOSE transA,
+                   CBLAS_TRANSPOSE transB,
+                   int M,
+                   int N,
+                   int K,
+                   U alpha,
+                   const T* A,
+                   const T* B,
+                   U beta,
+                   T* C,
+                   int batchCount,
+                   int64_t strideA,
+                   int64_t strideB) const;
+
   template <typename T>
   void BatchedGEMM(CBLAS_TRANSPOSE transA,
                    CBLAS_TRANSPOSE transB,
