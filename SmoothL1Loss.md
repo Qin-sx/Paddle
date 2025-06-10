@@ -1,7 +1,7 @@
 ## SmoothL1Loss
 
-[paddle文档](https://www.paddlepaddle.org.cn/documentation/docs/zh/api/paddle/nn/SmoothL1Loss_cn.html)
-[pytorch文档](https://docs.pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html)
+[paddle文档](https://www.paddlepaddle.org.cn/documentation/docs/zh/api/paddle/nn/SmoothL1Loss_cn.html)  
+[pytorch文档](https://docs.pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html)  
 
 ### paddle
 
@@ -17,6 +17,25 @@ $$ z_i = |x_i - y_i| - 0.5 * delta, otherwise $$
 
 paddle应该是huber(x,y)
 pytorch应该是huber(x,y)/beta
+
+### 来源
+
+[pytorch文档中的参考文献](https://arxiv.org/abs/1504.08083)，其中没有提到huber相关内容。
+
+![image](https://github.com/user-attachments/assets/cae8a4eb-d79b-41e8-a434-aa4a91166b14)
+
+
+[pytorch中的HuberLoss](https://docs.pytorch.org/docs/stable/generated/torch.nn.HuberLoss.html)中的讨论  
+
+> 当 $$\delta$$ 设置为1时，这种损失函数与Smooth L1 Loss等价。一般来说，这种损失函数与Smooth L1 Loss的区别在于一个 $$\delta$$（在Smooth L1中也称为 $$\beta$$的系数。关于这两种损失函数在行为上的差异，可以参考Smooth L1 Loss的进一步讨论
+
+[pytorch中的SmoothL1Loss](https://docs.pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html)中的讨论   
+
+> Smooth L1 Loss与Huber Loss密切相关，等价于 huber(x,y)/ $\beta$ （注意Smooth L1的超参数 $\beta$ 也被称为Huber中的 $\delta$ ）。这导致了以下差异：
+
+> 当 $\beta$ -> 0  时，Smooth L1 Loss收敛到L1Loss，而Huber Loss收敛到常数0损失。当 $$\beta$$ 为0时，Smooth L1 Loss等价于L1 Loss。  
+> 当 $$\beta$$ -> 无穷时，Smooth L1 Loss收敛到常数0损失，而Huber Loss收敛到MSELoss。  
+> 对于Smooth L1 Loss，随着 $$\beta$$ 的变化，损失的L1部分的斜率保持为1。对于Huber Loss，L1部分的斜率是 $$\beta$$。  
 
 ### 测试代码
 
